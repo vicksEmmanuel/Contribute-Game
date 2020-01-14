@@ -1,0 +1,3 @@
+const GreenCity = () => {};
+
+export { GreenCity };
