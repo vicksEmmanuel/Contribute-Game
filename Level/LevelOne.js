@@ -64,7 +64,7 @@ const orientations = [
 ];
 const dayFix = Math.random();
 const checkDay = dayFix < 0.5 ? true : false;
-let maxNumOfPops = 1;
+let maxNumOfPops = 2;
 let podMaintain = {};
 let lanternVisible = {};
 for (let i = 1; i <= maxNumOfPops; i++) {
@@ -160,8 +160,6 @@ export default class LevelOne extends Component {
             this.pods[idx] = ref;
           }}
           popping={false}
-          podMaintain={{}}
-          lanternVisible={{}}
           maxNumOfPops={maxNumOfPops}
         />
       );
@@ -242,6 +240,25 @@ export default class LevelOne extends Component {
 
   render() {
     const { color, orientation } = this.state;
+    const gameEngine = (
+      <GameEngine
+            ref={ref => {
+              this.engine = ref;
+            }}
+            style={{
+              width: WIDTH,
+              height: HEIGHT - 120,
+              flex: null,
+              top: 60
+            }}
+            entities={this.draw()}
+            running={this.state.running}
+            onEvent={this.onEvent}
+            systems={[Level]} //DayAndNight
+          >
+            <StatusBar hidden={true} />
+          </GameEngine>
+    );
     return (
       <View style={{ width: WIDTH, height: WIDTH }}>
         <View style={{ width: WIDTH, height: HEIGHT }}>
@@ -278,23 +295,7 @@ export default class LevelOne extends Component {
         <View
           style={{ position: "absolute", top: 0, width: WIDTH, height: HEIGHT }}
         >
-          <GameEngine
-            ref={ref => {
-              this.engine = ref;
-            }}
-            style={{
-              width: WIDTH,
-              height: HEIGHT - 120,
-              flex: null,
-              top: 60
-            }}
-            entities={this.draw()}
-            running={this.state.running}
-            onEvent={this.onEvent}
-            systems={[Level]} //DayAndNight
-          >
-            <StatusBar hidden={true} />
-          </GameEngine>
+          {gameEngine}
           {this.drawPod()}
           <View style={{ position: "absolute", top: 0, left: 0 }}>
             <LevelTrack />

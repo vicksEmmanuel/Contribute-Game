@@ -47,6 +47,7 @@ const Lanterns = {
   orange10: require("./orange10.png"),
   orange11: require("./orange11.png"),
   orange12: require("./orange12.png"),
+  lanternsprite: require("./lanternsprite.png"),
 };
 
 export default Lanterns;

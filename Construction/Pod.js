@@ -16,16 +16,17 @@ const randomBetween = (min, max) => {
 const floatingAnime = {
   0: {
     opacity: 0,
+    translateY: -randomBetween(0, 30)
   },
   0.1: {
     opacity: 1
   },
   0.5: {
-    translateY: -randomBetween(30, 50),
+    translateY: -randomBetween(30, 40)
   },
   1: {
     translateY: -randomBetween(40, 100),
-    opacity: 1,
+    opacity: 1
   }
 };
 const LANTERN_DIMENSION = { width: 30, height: 30 };
@@ -35,7 +36,7 @@ const swingingAnime = {
   0: {
     translateX: -amplitude,
     translateY: 0,
-    rotate: `${rotation}deg`,
+    rotate: `${rotation}deg`
   },
   0.5: {
     translateX: 0,
@@ -45,7 +46,7 @@ const swingingAnime = {
   1: {
     translateX: amplitude,
     translateY: 0,
-    rotate: `${-rotation}deg`,
+    rotate: `${-rotation}deg`
   }
 };
 
@@ -55,12 +56,21 @@ export default class Pod extends Component {
     this.pod = null;
     this.isPopping = false;
     this.actionTimeout = {};
-    this.actionTimeoutCount = 2000;
+    this.actionTimeoutCount = 12500;
     this.podTrack = {};
     this.podTimeoutCount = {};
     this.podTimeOutTrack = 0;
+    this.singularLantern = [];
+    this.lanternArray = {
+      orange: [24,25,26,27,28,29,30,31,32,33,34,35],
+      blue: [0,1,2,3,4,5,6,7,8,9,10,11],
+      green: [12,13,14,15,16,17,18,19,20,21,22,23],
+      red: [36,37,38,39,40,41,42,43,44,45,46,47]
+    };
     this.state = {
-      popping: props.popping
+      popping: props.popping,
+      lanternVisible: {},
+      podMaintain: {}
     };
   }
   endPop() {
@@ -74,25 +84,34 @@ export default class Pod extends Component {
   }
   popped() {
     this.isPopping = true;
-    this.props.podMaintain = {};
+    const fillObjectValues = value => {
+      const x = {};
+      const fillX = i => {
+        x[i] = value;
+      };
+      Array.apply(null, Array(this.props.maxNumOfPops)).map((i, idx) => {
+        fillX(idx);
+      });
+      return x;
+    };
+    const podMaintenance = fillObjectValues(false);
+    const lanternVisibility = fillObjectValues(true);
+    this.podTimeOutTrack = 0;
+
     this.setState(
       {
-        popping: true
+        popping: true,
+        podMaintain: podMaintenance,
+        lanternVisible: lanternVisibility
       },
       () => {
         Object.keys(this.podTrack).forEach(key => {
           this.actionTimeout[key] = setTimeout(() => {
-            let temp = false;
+            let tempLantern = this.state.lanternVisible;
+            tempLantern[key] = false;
+            this.setState({ lanternVisible: tempLantern });
             this.podTimeOutTrack = this.podTimeOutTrack + 1;
-            Object.keys(this.props.podMaintain).forEach(keyyer => {
-              if (this.props.podMaintain[keyyer] === true) {
-                temp = true;
-              }
-            });
-            if (!(temp === true)) {
-              this.endPop();
-            }
-            this.props.lanternVisible[key] = false;
+            this.endPop();
           }, this.podTimeoutCount[key]);
         });
       }
@@ -103,7 +122,7 @@ export default class Pod extends Component {
   };
   lantern(id) {
     let color = randomBetween(1, 40);
-    let twelve = randomBetween(1, 12);
+    let twelve = randomBetween(0, 11);
     const checkColor = x => {
       if (x >= 20 && x <= 40) {
         return "orange";
@@ -117,46 +136,62 @@ export default class Pod extends Component {
     };
     this.podTrack[id] = checkColor(color);
     this.podTimeoutCount[id] = this.randomBetween(
-      this.actionTimeoutCount - 500,
+      this.actionTimeoutCount - 10000,
       this.actionTimeoutCount
     );
-    this.props.podMaintain[id] = false;
-    this.props.lanternVisible[id] = true;
-
     return (
       <Animatable.View
+        key={`${Math.random()} ${Date.now()}`}
         duration={this.podTimeoutCount[id]}
-        animation={floatingAnime}
         iterationCount={1}
         style={[LANTERN_DIMENSION, { position: "absolute", zIndex: 5 }]}
         useNativeDriver
       >
         <View style={{ width: "100%", height: "100%" }}>
-          {this.props.lanternVisible[id] === true ? (
-            <View style={{ width: "100%", height: "100%" }}>
+          {this.state.lanternVisible[id] === true ? (
+            <View style={{ width: "100%", height: "100%", zIndex: 10 }}>
               <Animatable.View
                 style={{ width: "100%", height: "100%" }}
                 animation={swingingAnime}
                 duration={this.podTimeoutCount[id]}
-                iterationCount={1}
+                iterationCount="infinite"
                 useNativeDriver
               >
-                <Animatable.Image
-                  source={Lantern[`${checkColor(color)}${twelve}`]}
-                  style={{ width: "100%", height: "100%" }}
+                <SpriteSheet
+                  ref={ref => (this.singularLantern[id] = ref)}
+                  source={Lantern[`lanternsprite`]}
+                  columns={12}
+                  rows={6}
+                  width={30}
+                  height={30}
+                  animations={{
+                    ideal: [this.lanternArray[`${checkColor(color)}`][twelve]],
+                  }}
                 />
               </Animatable.View>
               <TouchableOpacity
                 activeOpacity={0.5}
                 onPress={() => {
-                  alert('clicked');
                   clearTimeout(this.actionTimeout[id]);
                   this.podTimeOutTrack = this.podTimeOutTrack + 1;
-                  this.props.lanternVisible[id] = false;
-                  this.props.podMaintain[id] = true;
-                  setTimeout(() => {
-                    this.endPop();
-                  }, 1000);
+                  alert(this.podTimeOutTrack);
+                  let tempPodMaintain = this.state.podMaintain;
+                  tempPodMaintain[id] = true;
+                  let tempLanternVisible = this.state.lanternVisible;
+                  tempLanternVisible[id] = false;
+                  this.setState(
+                    {
+                      lanternVisible: tempLanternVisible,
+                      podMaintain: tempPodMaintain
+                    },
+                    () => {
+                      setTimeout(() => {
+                        tempPodMaintain[id] = false;
+                        this.setState({ podMaintain: tempPodMaintain });
+                        this.endPop();
+                      }, 300);
+                    }
+                  );
                 }}
                 style={{
                   position: "absolute",
@@ -164,18 +199,12 @@ export default class Pod extends Component {
                   top: 0,
                   left: 0,
                   right: 0,
-                  backgroundColor: 'black',
-                  zIndex: 10,
+                  zIndex: 10
                 }}
               />
             </View>
           ) : (
             <View />
-          )}
-          {this.props.podMaintain[id] === false ? (
-            <View />
-          ) : (
-            <View style={{ backgroundColor: "red", width: 30, height: 30 }} />
           )}
         </View>
       </Animatable.View>
@@ -184,12 +213,17 @@ export default class Pod extends Component {
   pop() {
     if (this.state.popping) {
       this.podTrack = {};
-      let maxNumOfProps = this.props.maxNumOfPops;
-      const rand = randomBetween(1, maxNumOfProps);
-      const lantern = Array.apply(null, Array(rand)).map((i, idx) => {
-        return this.lantern(i);
+      const xLantern = [];
+      Array.apply(
+        null,
+        Array(this.randomBetween(1, this.props.maxNumOfPops))
+      ).map((i, idx) => {
+        xLantern.push(this.lantern(idx));
       });
-      return lantern;
+      let lantern = xLantern.map(i => {
+        return i;
+      });
+      return <View>{lantern}</View>;
     }
   }
   render() {
