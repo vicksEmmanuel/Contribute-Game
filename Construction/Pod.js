@@ -62,10 +62,10 @@ export default class Pod extends Component {
     this.podTimeOutTrack = 0;
     this.singularLantern = [];
     this.lanternArray = {
-      orange: [24,25,26,27,28,29,30,31,32,33,34,35],
-      blue: [0,1,2,3,4,5,6,7,8,9,10,11],
-      green: [12,13,14,15,16,17,18,19,20,21,22,23],
-      red: [36,37,38,39,40,41,42,43,44,45,46,47]
+      orange: [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35],
+      blue: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+      green: [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
+      red: [36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]
     };
     this.state = {
       popping: props.popping,
@@ -166,6 +166,22 @@ export default class Pod extends Component {
                   height={30}
                   animations={{
                     ideal: [this.lanternArray[`${checkColor(color)}`][twelve]],
+                    explode: [
+                      48,
+                      49,
+                      50,
+                      51,
+                      52,
+                      53,
+                      54,
+                      53,
+                      52,
+                      51,
+                      50,
+                      49,
+                      48,
+                      55
+                    ]
                   }}
                 />
               </Animatable.View>
@@ -173,25 +189,27 @@ export default class Pod extends Component {
                 activeOpacity={0.5}
                 onPress={() => {
                   clearTimeout(this.actionTimeout[id]);
-                  this.podTimeOutTrack = this.podTimeOutTrack + 1;
-                  alert(this.podTimeOutTrack);
-                  let tempPodMaintain = this.state.podMaintain;
-                  tempPodMaintain[id] = true;
-                  let tempLanternVisible = this.state.lanternVisible;
-                  tempLanternVisible[id] = false;
-                  this.setState(
-                    {
-                      lanternVisible: tempLanternVisible,
-                      podMaintain: tempPodMaintain
-                    },
-                    () => {
-                      setTimeout(() => {
-                        tempPodMaintain[id] = false;
-                        this.setState({ podMaintain: tempPodMaintain });
-                        this.endPop();
-                      }, 300);
+                  this.singularLantern[id].play({
+                    type: "explode",
+                    fps: 24,
+                    onFinish: () => {
+                      this.podTimeOutTrack = this.podTimeOutTrack + 1;
+                      alert(this.podTimeOutTrack);
+                      let tempPodMaintain = this.state.podMaintain;
+                      tempPodMaintain[id] = true;
+                      let tempLanternVisible = this.state.lanternVisible;
+                      tempLanternVisible[id] = false;
+                      this.setState(
+                        {
+                          lanternVisible: tempLanternVisible,
+                          podMaintain: tempPodMaintain
+                        },
+                        () => {
+                          this.endPop();
+                        }
+                      );
                     }
-                  );
+                  });
                 }}
                 style={{
                   position: "absolute",
